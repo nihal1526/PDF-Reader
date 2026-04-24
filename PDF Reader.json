@@ -1,0 +1,436 @@
+{
+  "name": "PDF Reader",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.document.file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        176,
+        0
+      ],
+      "id": "44668560-b431-4f08-9d08-ad81fb4b0a8c",
+      "name": "Get a file",
+      "webhookId": "5b56fcda-aa7f-424a-ab08-66c158acddf3",
+      "credentials": {
+        "telegramApi": {
+          "id": "A1YrIFRyrLjGUIw2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "*"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cb8f49c8-a48b-4750-b2a4-ee91f6d03b8d",
+      "name": "Telegram Trigger",
+      "webhookId": "3252d2d1-4eda-4918-b486-13fed9abd51b",
+      "credentials": {
+        "telegramApi": {
+          "id": "A1YrIFRyrLjGUIw2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=1️⃣ Purpose:\nThe AI Agent will read bank statement text, extract structured transaction data, and send it as a POST HTTPS request.\n\n2️⃣ Output Format:\n\n{\n  \"transactionUTR\": \"string\",\n  \"amount\": 0,\n  \"payMethod\": \"string\",\n  \"mode\": \"string\",\n  \"agentRemark\": \"string\",\n  \"accountNumber\": \"string\"\n}\n\n\n3️⃣ Extraction Rules:\n\n\"transactionUTR\" → extract the transaction reference (e.g., 564297630117, 527616729930)\n\n\"amount\" → extract the transaction amount (e.g., 150.00, 250.00)\n\n\"payMethod\" → extract from the transaction type (UPI, IMPS, etc.)\n\n\"mode\" → extract based on the credit/debit indicator (CR for credit, DR for debit)\n\n\"agentRemark\" → set as default \"BOT\"\n\n\"accountNumber\" → extract from the account header (e.g., 021006700004561)\n\n4️⃣ Example Output:\n\n{\n  \"transactionUTR\": \"564297630117\",\n  \"amount\": 150.00,\n  \"payMethod\": \"UPI\",\n  \"mode\": \"CR\",\n  \"agentRemark\": \"BOT\",\n  \"accountNumber\": \"021006700004561\"\n}\n\n\n5️⃣ Action:\nOnce all fields are extracted, the AI Agent will send the above JSON payload through an HTTPS POST request to the configured endpoint in n8n.\nIf any field (like accountNumber) is missing, it should request it from the Telegram bot before sending."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2336,
+        0
+      ],
+      "id": "fc18b9ed-2c2c-4c82-adb6-bd26eda4e8b6",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Telegram Trigger').item.json.message.from.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2256,
+        304
+      ],
+      "id": "1431002d-1744-4aa5-a72e-7d1e6004c35f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        2080,
+        288
+      ],
+      "id": "e374af6f-ca6f-4590-9e88-2db4ff6ab969",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "5m40i5poXJt2rHgr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "47a4fc2e-4192-46be-99c9-561ea455232e",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "={{ $json.text }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        0
+      ],
+      "id": "3fa1ba74-096a-4224-aee8-48b9cf0fb7f5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "sendChatAction",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2896,
+        0
+      ],
+      "id": "bafd9f4e-2c9a-4903-8650-7fa3aef702e7",
+      "name": "Send a chat action",
+      "webhookId": "17caa9a1-87ad-4b66-9519-613b93a76928",
+      "credentials": {
+        "telegramApi": {
+          "id": "A1YrIFRyrLjGUIw2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3104,
+        0
+      ],
+      "id": "992ec969-dd0f-4090-97de-753b70374808",
+      "name": "Send a text message",
+      "webhookId": "6f1c02f2-ac3d-44ac-99ee-a9ed4a9cccdd",
+      "credentials": {
+        "telegramApi": {
+          "id": "A1YrIFRyrLjGUIw2",
+          "name": "Test"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"transactionUTR\": \"string\",\n  \"amount\": 0,\n  \"payMethod\": \"string\",\n  \"mode\": \"string\",\n  \"agentRemark\": \"string\",\n  \"accountNumber\": \"string\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2544,
+        304
+      ],
+      "id": "64ae302e-8cfa-4a32-945c-7d7da648e016",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pzpx1.callbackpg.com/pg/response/nippy/payin/callback",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "={{ $json.output.transactionUTR }}",
+              "value": "={{ $json.output.transactionUTR }}"
+            },
+            {
+              "name": "={{ $json.output.amount }}",
+              "value": "={{ $json.output.amount }}"
+            },
+            {
+              "name": "={{ $json.output.payMethod }}",
+              "value": "={{ $json.output.payMethod }}"
+            },
+            {
+              "name": "={{ $json.output.mode }}",
+              "value": "={{ $json.output.mode }}"
+            },
+            {
+              "name": "={{ $json.output.agentRemark }}",
+              "value": "={{ $json.output.agentRemark }}"
+            },
+            {
+              "name": "={{ $json.output.accountNumber }}",
+              "value": "={{ $json.output.accountNumber }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $json.output.transactionUTR }}",
+              "value": "={{ $json.output.transactionUTR }}"
+            },
+            {
+              "name": "={{ $json.output.amount }}",
+              "value": "={{ $json.output.amount }}"
+            },
+            {
+              "name": "={{ $json.output.payMethod }}",
+              "value": "={{ $json.output.payMethod }}"
+            },
+            {
+              "name": "={{ $json.output.mode }}",
+              "value": "={{ $json.output.mode }}"
+            },
+            {
+              "name": "={{ $json.output.agentRemark }}",
+              "value": "={{ $json.output.agentRemark }}"
+            },
+            {
+              "name": "={{ $json.output.accountNumber }}",
+              "value": "={{ $json.output.accountNumber }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "={{ $json.output.transactionUTR }}",
+              "value": "={{ $json.output.transactionUTR }}"
+            },
+            {
+              "name": "={{ $json.output.amount }}",
+              "value": "={{ $json.output.amount }}"
+            },
+            {
+              "name": "={{ $json.output.payMethod }}",
+              "value": "={{ $json.output.payMethod }}"
+            },
+            {
+              "name": "={{ $json.output.agentRemark }}",
+              "value": "={{ $json.output.agentRemark }}"
+            },
+            {
+              "name": "={{ $json.output.accountNumber }}",
+              "value": "={{ $json.output.accountNumber }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2688,
+        0
+      ],
+      "id": "05d92c0d-7954-47c6-9ed5-8e215e072228",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "81b07930-c5d5-4dff-b862-dd905b560ec7",
+      "name": "Extract from File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a chat action": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a chat action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "875ea901-1d71-4de3-b1b2-a794a20f5e0a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43f1220d9d92ba80663e6fef4b0b6176659772f80be70ddc433b6412de5827fa"
+  },
+  "id": "wGBIHZPppeN2HMDq",
+  "tags": []
+}
