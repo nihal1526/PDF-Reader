@@ -23,25 +23,37 @@ This project is an automated workflow built with n8n that reads any type of PDF 
 
 ## 🧠 How It Works
 
-1. User sends a PDF file to the Telegram bot
-2. The workflow downloads the file
-3. Text is extracted from the PDF
-4. AI analyzes the content
-5. Extracts relevant structured data based on prompt rules
-6. Data is formatted into JSON
-7. JSON is sent to an API endpoint
-8. Response is returned to the user
+1. User sends a PDF file to the Telegram bot  
+2. The workflow downloads the file  
+3. Text is extracted from the PDF  
+4. AI analyzes the content  
+5. Extracts relevant structured data based on prompt rules  
+6. Data is formatted into JSON  
+7. JSON is sent to an API endpoint  
+8. Response is returned to the user  
 
 ---
 
-## 📦 Example Output
+## 🖼️ Product Preview
 
-> Output depends on the document type and AI prompt configuration
+<p align="center">
+  <img src="PDF Reader.png" alt="PDF Reader Workflow" width="900"/>
+</p>
 
-```json
-{
-  "field1": "value",
-  "field2": "value",
-  "field3": "value"
-}
+<p align="center">
+  <b>End-to-end automation:</b> Capture → Process → Store → Respond ⚡
+</p>
 
+---
+
+## 🔄 Workflow Diagram
+
+```mermaid
+flowchart LR
+    A[Telegram User] --> B[Upload PDF]
+    B --> C[n8n Workflow]
+    C --> D[Extract Text from PDF]
+    D --> E[AI Processing]
+    E --> F[Structured JSON Output]
+    F --> G[HTTP API Request]
+    G --> H[Telegram Response]
